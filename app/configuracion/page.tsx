@@ -7,10 +7,10 @@ import Link from 'next/link';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { useUser } from '@/app/hooks/useUser';
+import { PASSWORD_MIN_LENGTH } from '@/app/lib/authValidation';
 
 const USERNAME_MIN_LENGTH = 3;
 const USERNAME_MAX_LENGTH = 20;
-const PASSWORD_MIN_LENGTH = 8;
 
 // Acepta el código con o sin espacios (ej. "1234 5678 9012" o "123456789012") — se
 // valida ignorando espacios, pero se guarda tal cual lo escribió el usuario.

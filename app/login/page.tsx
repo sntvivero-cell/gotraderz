@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
+import { PASSWORD_MIN_LENGTH } from '@/app/lib/authValidation';
 
 type AuthMode = 'login' | 'signup';
 
@@ -128,6 +129,13 @@ function LoginForm() {
     }
     if (/\s/.test(trimmedUsername)) {
       setError('Username cannot contain spaces.');
+      return;
+    }
+    // Antes solo se validaba vía el atributo HTML `minLength` (sin mensaje propio ni
+    // consistencia con configuracion/reset-password) — mismo check explícito que esas
+    // dos pantallas, misma constante compartida.
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
       return;
     }
 
@@ -289,11 +297,21 @@ function LoginForm() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-[#8792A0]">Password</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-[#8792A0]">Password</label>
+                {mode === 'login' && (
+                  <Link
+                    href="/forgot-password"
+                    className="text-[11px] font-semibold text-[#2E9BF5] transition hover:text-[#5CB3F9]"
+                  >
+                    Forgot your password?
+                  </Link>
+                )}
+              </div>
               <input
                 type="password"
                 required
-                minLength={6}
+                minLength={PASSWORD_MIN_LENGTH}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -328,7 +346,12 @@ function LoginForm() {
                   className="underline underline-offset-2 hover:text-white"
                 >
                   Want to sign in?
-                </button>
+                </button>{' '}
+                Or{' '}
+                <Link href="/forgot-password" className="underline underline-offset-2 hover:text-white">
+                  reset your password
+                </Link>
+                .
               </p>
             )}
 
