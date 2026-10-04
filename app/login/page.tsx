@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -12,8 +12,48 @@ type AuthMode = 'login' | 'signup';
 const USERNAME_MIN_LENGTH = 3;
 const USERNAME_MAX_LENGTH = 20;
 
+// useSearchParams() necesita el Suspense de acá (requisito de Next para no romper el
+// build: "Missing Suspense boundary with useSearchParams") — LoginForm es quien
+// realmente lo usa, este wrapper es solo para cumplir esa regla sin volver dinámica
+// toda la ruta.
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+// Un ?next= solo es seguro si, resuelto como URL real, cae en el MISMO origin que el
+// propio sitio — rechazar a mano un prefijo como "//" no alcanza: el parser de URL
+// (WHATWG, el mismo que usa el navegador) trata "\" exactamente igual que "/" para
+// schemes especiales (http/https), así que "/\evil.com" o "\\evil.com" TAMBIÉN
+// resuelven a un origin ajeno pese a "empezar con una barra". Por eso se construye la
+// URL de verdad contra el propio origin (new URL(next, location.origin)) y se compara
+// el origin resultante — eso cubre "//", "\\", cualquier mezcla de ambas, URLs
+// absolutas, y toda variante que el navegador normalice distinto a como se ve el
+// string crudo. Los caracteres de control y la barra invertida se rechazan ANTES de
+// intentar parsear, sin depender de que el parser los interprete como esperamos.
+function resolveSafeNextPath(rawNext: string | null): string {
+  if (!rawNext) return '/';
+  if (/[\u0000-\u001F\u007F\\]/.test(rawNext)) return '/';
+  // SSR/CSR bailout de useSearchParams (ver comentario de arriba) garantiza que esto
+  // corre en el cliente, pero el guard queda por si algún día deja de ser así.
+  if (typeof window === 'undefined') return '/';
+
+  try {
+    const resolved = new URL(rawNext, window.location.origin);
+    if (resolved.origin !== window.location.origin) return '/';
+    return `${resolved.pathname}${resolved.search}${resolved.hash}` || '/';
+  } catch {
+    return '/';
+  }
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = resolveSafeNextPath(searchParams.get('next'));
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
@@ -73,7 +113,7 @@ export default function LoginPage() {
         setIsSubmitting(false);
         return;
       }
-      router.push('/');
+      router.push(nextPath);
       return;
     }
 

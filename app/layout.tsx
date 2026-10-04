@@ -5,6 +5,7 @@ import { Footer } from "./components/layout/Footer";
 import { CookieConsentBanner } from "./components/layout/CookieConsentBanner";
 import { NotificationNoticeBanner } from "./components/layout/NotificationNoticeBanner";
 import { Analytics } from "@vercel/analytics/next";
+import { siteUrl } from "./lib/siteUrl";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,10 @@ const geistMono = Geist_Mono({
 // objeto porque el App Router mergea los campos de openGraph/twitter que falten desde
 // el layout padre, no hace falta repetirlos en cada página.
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gotraderz.com"),
+  // https://www.gotraderz.com es el dominio canónico (gotraderz.com sin "www" hace un
+  // 308 hacia ahí) — ver app/lib/siteUrl.ts para el porqué y la salvedad sobre
+  // SITE_URL (env var distinta, usada solo por los emails de notificación).
+  metadataBase: new URL(siteUrl()),
   title: "GoTraderz — Pokémon GO Trading Community Board",
   description: "Post and browse Pokémon GO trades with other trainers — Shiny, Legendary, Lucky, and Special Trades.",
   icons: {

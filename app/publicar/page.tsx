@@ -75,8 +75,12 @@ export default function PublishTradePage() {
     }
 
     setShowSuccessToast(true);
+    // A diferencia de editar (app/publicar/[tradeGroupId]/editar/page.tsx, que sigue
+    // volviendo a "/" sin tocar), publicar un post NUEVO ahora lleva a su página
+    // pública compartible con el banner de "ya está en vivo" — es el momento en que
+    // más sentido tiene empujar a compartirlo.
     setTimeout(() => {
-      router.push('/');
+      router.push(`/trade/${tradeGroupId}?published=1`);
     }, 900);
     return null;
   }

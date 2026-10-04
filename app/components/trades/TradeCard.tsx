@@ -22,6 +22,7 @@ import { timeAgo } from '@/app/lib/timeAgo';
 import { getOrCreateConversation } from '@/app/lib/conversations';
 import { PokemonDetailPopover } from '@/app/components/trades/PokemonDetailPopover';
 import { RankBadge } from '@/app/components/trades/RankBadge';
+import { ShareTradeButton } from '@/app/components/trades/ShareTradeButton';
 import type { TradePost, PokemonVariant } from '@/app/types/trades';
 
 interface TradeCardProps {
@@ -352,6 +353,10 @@ export function TradeCard({
           </div>
         )}
         <div className="flex shrink-0 items-center gap-2">
+          {/* A diferencia de guardar/editar, compartir tiene sentido para CUALQUIER
+             publicación (incluida la propia) — por eso no está condicionado a
+             isOwner. */}
+          <ShareTradeButton trade={trade} variant="icon" />
           {/* Visible siempre que no sea tu propia publicación — a diferencia de
              Editar/Eliminar (que solo aparecen si sos el dueño), guardar aplica
              justo al revés: no tiene sentido guardar tu propio post. */}
